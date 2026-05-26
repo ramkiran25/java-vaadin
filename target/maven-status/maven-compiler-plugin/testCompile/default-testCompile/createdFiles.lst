@@ -1,1 +1,3 @@
-consumption\energy\tests\ConsumerServiceTest.class
+consumption\energy\tests\ConsumptionServiceImplTest.class
+consumption\energy\tests\DataLoaderServiceImplTest.class
+util\SaxXmlParserTest.class

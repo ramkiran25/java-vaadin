@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: util.SaxXmlParserTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.208 s - in util.SaxXmlParserTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.269 s - in util.SaxXmlParserTest

@@ -17,12 +17,12 @@ public class Configuration {
   }
 
   @Bean
-  public CacheManager cacheManager() {
+  CacheManager cacheManager() {
     return new EhCacheCacheManager(cacheMangerFactory().getObject());
   }
 
   @Bean
-  public EhCacheManagerFactoryBean cacheMangerFactory() {
+  EhCacheManagerFactoryBean cacheMangerFactory() {
     EhCacheManagerFactoryBean bean = new EhCacheManagerFactoryBean();
     bean.setShared(true);
     return bean;

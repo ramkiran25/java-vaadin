@@ -1,64 +1,48 @@
 package util;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.client.RestTemplate;
-import org.xml.sax.SAXException;
 
-import constant.Constant;
-import lombok.extern.slf4j.Slf4j;
 import model.EnergyReport;
-import model.HourConsumption;
 
-@Slf4j
 @RunWith(SpringRunner.class)
-@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = SaxXmlParser.class) // Focus test on the parser component
 public class SaxXmlParserTest {
 
-	private RestTemplate restTemplate;
+    @Autowired
+    private SaxXmlParser saxXmlParser;
 
-	@Before
-	public void init() {
-		restTemplate = new RestTemplate();
-	}
+    @Test
+    public void shouldParseXmlCorrectly() throws Exception {
+        // Minimal sample XML to verify the parser logic
+        String xmlString = 
+            "<root>" +
+            "  <DocumentIdentification>12345</DocumentIdentification>" +
+            "  <DocumentDateTime>2026-05-26T07:00:00</DocumentDateTime>" +
+            "  <AccountingPoint>98765</AccountingPoint>" +
+            "  <MeasurementUnit>KWH</MeasurementUnit>" +
+            "  <HourConsumption ts='2026-05-26T07:00:00'>0.50</HourConsumption>" +
+            "</root>";
 
-	@Test
-	public void shoulPraseXml() {
-		String xmlString = restTemplate.getForObject(Constant.URL, String.class);
-		try {
-			EnergyReport energyReport = SaxXmlParser.parser(xmlString);
-			assertNotNull(energyReport.getDocumentDateTime());
+        // Act
+        EnergyReport energyReport = saxXmlParser.parse(xmlString);
 
-			assertNotNull(energyReport.getDocumentIdentification());
-
-			assertNotNull(energyReport.getAccountTimeSeries().getAccountingPoint());
-			List<HourConsumption> hourConsumption = energyReport.getAccountTimeSeries().getConsumptionHistory()
-					.getHourConsumption();
-
-			for (HourConsumption hc : hourConsumption) {
-				assertNotNull(hc.getContent());
-				assertNotNull(hc.getTs());
-			}
-
-		} catch (ParserConfigurationException e) {
-			log.info(e.getMessage());
-		} catch (SAXException e) {
-			log.info(e.getMessage());
-		} catch (IOException e) {
-			log.info(e.getMessage());
-		}
-
-	}
-
+        // Assert
+        assertNotNull("EnergyReport should not be null", energyReport);
+        assertEquals("12345", energyReport.getDocumentIdentification());
+        assertEquals("2026-05-26T07:00:00", energyReport.getDocumentDateTime());
+        
+        assertNotNull(energyReport.getAccountTimeSeries());
+        assertEquals("98765", energyReport.getAccountTimeSeries().getAccountingPoint());
+        
+        // Verify list was populated
+        assertEquals(1, energyReport.getAccountTimeSeries().getConsumptionHistory().getHourConsumption().size());
+        assertEquals("0.50", energyReport.getAccountTimeSeries().getConsumptionHistory().getHourConsumption().get(0).getContent());
+    }
 }

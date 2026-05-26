@@ -1,7 +1,0 @@
--------------------------------------------------------------------------------
-Test set: consumption.energy.tests.ConsumptionEnergyTests
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.055 s <<< FAILURE! - in consumption.energy.tests.ConsumptionEnergyTests
-initializationError(consumption.energy.tests.ConsumptionEnergyTests)  Time elapsed: 0.001 s  <<< ERROR!
-java.lang.IllegalStateException: Configuration error: found multiple declarations of @BootstrapWith for test class [consumption.energy.tests.ConsumptionEnergyTests]: [@org.springframework.test.context.BootstrapWith(value=class org.springframework.boot.test.context.SpringBootTestContextBootstrapper), @org.springframework.test.context.BootstrapWith(value=class org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTestContextBootstrapper)]
-

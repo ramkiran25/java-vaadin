@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: consumption.energy.tests.DataLoaderServiceImplTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.673 s <<< FAILURE! - in consumption.energy.tests.DataLoaderServiceImplTest
+testLoadSeedData_Success(consumption.energy.tests.DataLoaderServiceImplTest)  Time elapsed: 0.076 s  <<< ERROR!
+exception.ApiRequestException: Data load failed: Cannot invoke "model.AccountTimeSeries.getConsumptionHistory()" because the return value of "model.EnergyReport.getAccountTimeSeries()" is null
+	at consumption.energy.tests.DataLoaderServiceImplTest.testLoadSeedData_Success(DataLoaderServiceImplTest.java:49)
+

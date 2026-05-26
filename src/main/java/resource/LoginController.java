@@ -1,7 +1,7 @@
-/*package resource;
+package resource;
 
 
-D Rama Kiron
+//D Rama Kiron
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,4 +14,3 @@ public class LoginController {
 		return "login";
 	}
 }
-*/

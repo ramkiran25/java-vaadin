@@ -2,103 +2,64 @@ package util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import model.AccountTimeSeries;
-import model.ConsumptionHistory;
-import model.EnergyReport;
-import model.HourConsumption;
+import model.*;
 
 public class SaxXmlDefaultHandler extends DefaultHandler {
-  private static final String HOUR_CONSUMPTION = "HourConsumption";
-  private static final String ACCOUNTING_POINT = "AccountingPoint";
-  private static final String MEASUREMENT_UNIT = "MeasurementUnit";
-  private static final String DOCUMENT_DATE_TIME = "DocumentDateTime";
-  private static EnergyReport energyReport = null;
-  private static AccountTimeSeries accountTimeSeries = null;
-  boolean documentIdentification = false;
-  boolean documentDate = false;
-  boolean measurementUnit = false;
-  boolean accountingPoint = false;
-  boolean hourConsumption = false;
-  HourConsumption hc;
-  String ts = null;
-  List<HourConsumption> hourConsumptions = new ArrayList<HourConsumption>();
 
-  public void startElement(String uri, String localName, String qName, Attributes attributes)
-      throws SAXException {
-    if (qName.equals("DocumentIdentification")) {
-      documentIdentification = true;
+    private final EnergyReport energyReport = new EnergyReport();
+    private final AccountTimeSeries accountTimeSeries = new AccountTimeSeries();
+    private final List<HourConsumption> hourConsumptions = new ArrayList<>();
+    
+    private String currentTag = null;
+    private String currentTs = null;
 
-    } else if (qName.equals(DOCUMENT_DATE_TIME)) {
-      documentDate = true;
+    // Map to handle tag processing logic without if-else
+    private final Map<String, Consumer<String>> tagActions = Map.of(
+        "DocumentIdentification", energyReport::setDocumentIdentification,
+        "DocumentDateTime", energyReport::setDocumentDateTime,
+        "MeasurementUnit", accountTimeSeries::setMeasurementUnit,
+        "AccountingPoint", accountTimeSeries::setAccountingPoint
+    );
 
-    } else if (qName.equals(MEASUREMENT_UNIT)) {
-      measurementUnit = true;
-
-    } else if (qName.equals(ACCOUNTING_POINT)) {
-      accountingPoint = true;
-
-    } else if (qName.equals(HOUR_CONSUMPTION)) {
-      ts = attributes.getValue("ts");
-      hourConsumption = true;
-
+    @Override
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+        currentTag = qName;
+        if ("HourConsumption".equals(qName)) {
+            currentTs = attributes.getValue("ts");
+        }
     }
 
-  }
+    @Override
+    public void characters(char[] ch, int start, int length) {
+        String data = new String(ch, start, length).trim();
+        if (data.isEmpty()) return;
 
-  @Override
-  public void characters(char[] ch, int start, int length) throws SAXException {
-    if (energyReport == null)
-      energyReport = new EnergyReport();
-    if (accountTimeSeries == null)
-      accountTimeSeries = new AccountTimeSeries();
-
-    if (documentIdentification) {
-      String documentId = new String(ch, start, length);
-      energyReport.setDocumentIdentification(documentId);
-      documentIdentification = false;
-    } else if (documentDate) {
-      String document = new String(ch, start, length);
-      energyReport.setDocumentDateTime(document);
-
-      documentDate = false;
-    } else if (measurementUnit || accountingPoint || hourConsumption) {
-      if (measurementUnit) {
-        String measureUnit = new String(ch, start, length);
-        accountTimeSeries.setMeasurementUnit(measureUnit);
-        measurementUnit = false;
-      } else if (accountingPoint) {
-        String accountingPt = new String(ch, start, length);
-        accountTimeSeries.setAccountingPoint(accountingPt);
-        accountingPoint = false;
-      }
-      energyReport.setAccountTimeSeries(accountTimeSeries);
-
-      if (hourConsumption) {
-        hc = new HourConsumption();
-        hc.setTs(ts);
-        hc.setContent(new String(ch, start, length));
-        hourConsumptions.add(hc);
-        ConsumptionHistory chistory = new ConsumptionHistory();
-        chistory.setHourConsumption(hourConsumptions);
-        energyReport.getAccountTimeSeries().setConsumptionHistory(chistory);
-        hourConsumption = false;
-        ts = null;
-
-      }
-
+        // Process simple tags from the map
+        if (tagActions.containsKey(currentTag)) {
+            tagActions.get(currentTag).accept(data);
+        } 
+        // Handle complex object creation for HourConsumption
+        else if ("HourConsumption".equals(currentTag)) {
+            HourConsumption hc = new HourConsumption(data, currentTs);
+            hourConsumptions.add(hc);
+            
+            ConsumptionHistory history = new ConsumptionHistory(new ArrayList<>(hourConsumptions));
+            accountTimeSeries.setConsumptionHistory(history);
+        }
     }
 
-  }
+    @Override
+    public void endElement(String uri, String localName, String qName) {
+        // Link the time series to the report once structure is built
+        energyReport.setAccountTimeSeries(accountTimeSeries);
+        currentTag = null;
+    }
 
-  @Override
-  public void endDocument() throws SAXException {
-    hourConsumptions.add(hc);
-  }
-
-  public static EnergyReport getEnergyReport() {
-    return energyReport;
-  }
+    public EnergyReport getEnergyReport() {
+        return energyReport;
+    }
 }

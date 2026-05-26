@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FIX: Root level was DEBUG, which floods the console with Spring/Hibernate/Tomcat
+  internal logs and makes application-level logs impossible to read.
+  Set root to WARN, and give the application packages their own INFO/DEBUG loggers.
+-->
+<Configuration>
+    <Appenders>
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+        </Console>
+        <RollingFile name="FILE" fileName="logs/energy-consumption.log"
+                     filePattern="logs/energy-consumption-%d{yyyy-MM-dd}.log.gz">
+            <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <!-- Application packages: DEBUG for development visibility -->
+        <Logger name="service"     level="DEBUG" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="FILE"/>
+        </Logger>
+        <Logger name="util"        level="DEBUG" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="FILE"/>
+        </Logger>
+        <Logger name="advice"      level="INFO"  additivity="false">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="FILE"/>
+        </Logger>
+        <!-- Everything else (Spring, Hibernate, Tomcat) at WARN to reduce noise -->
+        <Root level="WARN">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="FILE"/>
+        </Root>
+    </Loggers>
+</Configuration>
