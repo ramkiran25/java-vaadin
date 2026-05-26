@@ -8,7 +8,6 @@ The purpose of this assignment is to create a web form which allows users to dis
 
 ## Architecture — UML Class Diagram
 
-
 ![Service Class Diagram](docs/energy_consumption.png)
 
 <div align="center">
